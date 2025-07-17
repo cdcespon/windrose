@@ -88,7 +88,9 @@ El rectángulo translúcido gris superpuesta en el gráfico de rosa de vientos r
 - Parse para el procesamiento de archivos CSV
 
 ## Personalización
-
 Puede personalizar los rangos de velocidad y colores modificando el archivo `script.js`. Busque la sección donde se definen los `speedRanges` para ajustar los rangos y colores según sus necesidades.
 
-](image.png)
+## Ejemplo de visualización
+
+![Ejemplo de rosa de vientos](image.png)
+
