@@ -85,8 +85,10 @@ El rectángulo translúcido gris superpuesta en el gráfico de rosa de vientos r
 
 - HTML5, CSS3 y JavaScript
 - Chart.js para la visualización del gráfico
-- PapaParse para el procesamiento de archivos CSV
+- Parse para el procesamiento de archivos CSV
 
 ## Personalización
 
 Puede personalizar los rangos de velocidad y colores modificando el archivo `script.js`. Busque la sección donde se definen los `speedRanges` para ajustar los rangos y colores según sus necesidades.
+
+](image.png)
