@@ -196,9 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
             counts[dir][speedRangeIndex]++;
         });
         
-        // Calculate optimal runway direction based on wind data
-        const optimalDirection = calculateOptimalRunwayDirection(data, directionColumn, speedColumn);
-        optimalRunwayDirection = optimalDirection;
+        // Calculate optimal runway direction and utilization coefficient based on wind data
+        const runwayData = calculateOptimalRunwayDirection(data, directionColumn, speedColumn);
+        optimalRunwayDirection = runwayData.direction;
         
         // Prepare data for Chart.js
         const datasets = speedRanges.map((range, i) => {
@@ -212,8 +212,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create or update the chart
         createWindRoseChart(chartCanvas, directions, datasets);
         
-        // Display runway information
-        displayRunwayInfo(optimalDirection);
+        // Display runway information including utilization coefficient
+        displayRunwayInfo(runwayData);
         
         // Create direction references
         createDirectionReferences(directions);
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {Array} data - The parsed CSV data
      * @param {String} directionColumn - The column name for wind direction
      * @param {String} speedColumn - The column name for wind speed
-     * @returns {Number} - The optimal runway direction in degrees
+     * @returns {Object} - Object containing the optimal runway direction and utilization coefficient
      */
     function calculateOptimalRunwayDirection(data, directionColumn, speedColumn) {
         // Convert all wind directions and speeds to vectors
@@ -480,15 +480,80 @@ document.addEventListener('DOMContentLoaded', function() {
         // Round to nearest 10 degrees (common for runway numbering)
         runwayDirection = Math.round(runwayDirection / 10) * 10;
         
-        return runwayDirection;
+        // Calculate utilization coefficient
+        const utilizationCoefficient = calculateUtilizationCoefficient(data, runwayDirection, directionColumn, speedColumn);
+        
+        return {
+            direction: runwayDirection,
+            utilizationCoefficient: utilizationCoefficient
+        };
+    }
+    
+    /**
+     * Calculate the runway utilization coefficient
+     * @param {Array} data - The parsed CSV data
+     * @param {Number} runwayDirection - The runway direction in degrees
+     * @param {String} directionColumn - The column name for wind direction
+     * @param {String} speedColumn - The column name for wind speed
+     * @returns {Number} - The utilization coefficient (percentage)
+     */
+    function calculateUtilizationCoefficient(data, runwayDirection, directionColumn, speedColumn) {
+        // Maximum acceptable crosswind component (in km/h)
+        const maxCrosswind = 20;
+        
+        // Count how many wind observations are usable for this runway
+        let usableCount = 0;
+        let totalValidObservations = 0;
+        
+        data.forEach(row => {
+            let windDirection = row[directionColumn];
+            let windSpeed = row[speedColumn];
+            
+            // Skip if direction or speed is missing or invalid
+            if (windDirection === undefined || windSpeed === undefined) {
+                return;
+            }
+            
+            // Convert to numbers if they're strings
+            if (typeof windDirection === 'string') {
+                windDirection = parseFloat(windDirection);
+                if (isNaN(windDirection)) return;
+            }
+            
+            if (typeof windSpeed === 'string') {
+                windSpeed = parseFloat(windSpeed);
+                if (isNaN(windSpeed)) return;
+            }
+            
+            totalValidObservations++;
+            
+            // Calculate the angle between wind direction and runway direction
+            let angleDiff = Math.abs(windDirection - runwayDirection);
+            if (angleDiff > 180) angleDiff = 360 - angleDiff;
+            
+            // Calculate crosswind component
+            const crosswindComponent = windSpeed * Math.sin(angleDiff * Math.PI / 180);
+            
+            // Check if crosswind is below the threshold
+            if (Math.abs(crosswindComponent) <= maxCrosswind) {
+                usableCount++;
+            }
+        });
+        
+        // Calculate the coefficient as a percentage
+        const coefficient = totalValidObservations > 0 ?
+            (usableCount / totalValidObservations) * 100 : 0;
+        
+        return coefficient.toFixed(2);
     }
     
     /**
      * Display runway information
      * @param {Number} direction - The optimal runway direction in degrees
      */
-    function displayRunwayInfo(direction) {
+    function displayRunwayInfo(runwayData) {
         const runwayInfoDiv = document.getElementById('runway-info');
+        const direction = runwayData.direction;
         
         // Convert direction to runway designation (e.g., 270 degrees -> Runway 27)
         // Runway numbers are in tens of degrees, from 01 to 36
@@ -512,6 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p><strong>Dirección óptima:</strong> ${direction}° (${Math.round(direction)}°)</p>
                 <p><strong>Designación de pista:</strong> ${runwayDesignation}/${reciprocalDesignation}</p>
                 <p><strong>Orientación:</strong> ${Math.round(direction)}°/${Math.round((direction + 180) % 360)}°</p>
+                <p><strong>Coeficiente de utilización:</strong> ${runwayData.utilizationCoefficient}%</p>
             </div>
         `;
     }
