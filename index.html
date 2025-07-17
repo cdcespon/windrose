@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rosa de Vientos - Ingeniería Aeronáutica</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Rosa de Vientos</h1>
+        <div class="upload-section">
+            <label for="csv-file">Seleccionar archivo CSV:</label>
+            <input type="file" id="csv-file" accept=".csv">
+        </div>
+        <div class="chart-section">
+            <div class="direction-references">
+                <h4>Direcciones</h4>
+                <div id="direction-legend"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="wind-rose-chart"></canvas>
+            </div>
+        </div>
+        <div class="data-info">
+            <h3>Información del Archivo</h3>
+            <div id="file-info"></div>
+        </div>
+    </div>
+    
+    <!-- Chart.js library for creating the wind rose chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <!-- Custom script -->
+    <script src="script.js"></script>
+</body>
+</html>
